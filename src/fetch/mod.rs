@@ -1,57 +1,59 @@
-use std::error::Error;
+use reqwest::Client;
+use std::{fmt, collections::HashMap, error::Error};
 
-
-
-///  [ https://random-word-api.herokuapp.com/ ]
-/*
-    ----------------------------|     Requests API     |----------------------------
-
-    {get}    /all                  -      getting all words;
-    {get}    /word                 -      getting 1 random word;
-    {get}    /word?number={i32}    -      set words array size;
-    {get}    /word?length={i32}    -      set words size;
-    {get}    /word?lang={lang}     -      set language;  ["it","zh","de","fr","es"]
-
-    ------------------------| Requests API { information } |------------------------
-
-    {get}    /languages            -      view all supported languages;
-*/
-///
-
-
-
-pub enum Langs
-{
-  it, zh, de, fr, es,
+pub enum Langs {
+    It, Zh, De, Fr, Es,
 }
 
-pub struct Request
+impl Langs
 {
-  res: Option<String>
-}
-
-impl Request
-{
-  pub fn new() -> Self
+  pub fn hsh_pm() -> HashMap<i32, Langs>
   {
-    Request{res: None}
+    let mp = HashMap::from([
+      (1, Langs::It),
+      (2, Langs::Zh),
+      (3, Langs::De),
+      (4, Langs::Fr),
+      (5, Langs::Es),
+  ]);
+  mp
   }
+}
 
-  pub async fn gen_words(&mut self, arr_sz: i32, lang: Langs) -> Result<(), Box<dyn Error>>
-  {
-    let lang_f = match lang {
-      Langs::de => "de",
-      Langs::fr => "fr",
-      Langs::es => "es",
-      Langs::it => "it",
-      Langs::zh => "zh",
-    };
-    let frmt = format!("https://random-word-api.herokuapp.com/word?number={arr_sz}&lang={lang_f}");
-    let req = reqwest::get(&frmt)
-        .await?
-        .text()
-        .await?;
-      self.res = Some(req);
-      Ok(())
+pub struct Request {
+    res: Option<String>
+}
+
+impl Request {
+    pub fn new() -> Self {
+        Request { res: None }
+    }
+
+    pub async fn gen_words(&mut self, arr_sz: i32, lang: &Langs) -> Result<(), Box<dyn Error>> {
+        let lang_f = match lang {
+            Langs::It => "de",
+            Langs::Zh => "fr",
+            Langs::De => "es",
+            Langs::Fr => "it",
+            Langs::Es => "zh",
+        };
+        let frmt = format!("https://random-word-api.herokuapp.com/word?number={}&lang={}", arr_sz, lang_f);
+        let client = Client::new();
+        let req = client.get(&frmt)
+            .send()
+            .await?
+            .text()
+            .await?;
+        self.res = Some(req);
+        Ok(())
+    }
+}
+
+impl fmt::Display for Request {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+      match &self.res {
+          Some(result) => write!(f, "{}", result),
+          None => write!(f, "No data"),
+      }
   }
 }

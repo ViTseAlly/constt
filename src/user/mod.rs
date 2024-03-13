@@ -48,7 +48,7 @@ impl UserInput {
 
     pub fn is_int(&mut self) -> &mut Self {
         loop {
-            if let Some(v) = self.to_i32() {
+            if let Some(_) = self.to_i32() {
                 return self;
             } else {
                 println!("Invalid input! Please enter a number.");
